@@ -32,6 +32,7 @@ use ApacheSolrForTypo3\Solr\IndexQueue\Exception\IndexingException;
 use ApacheSolrForTypo3\Solr\NoSolrConnectionFoundException;
 use ApacheSolrForTypo3\Solr\System\Logging\SolrLogManager;
 use ApacheSolrForTypo3\Solr\System\Records\Pages\PagesRepository;
+use ApacheSolrForTypo3\Solr\System\Records\RecordRepository;
 use ApacheSolrForTypo3\Solr\System\Solr\Document\Document;
 use ApacheSolrForTypo3\Solr\System\Solr\ResponseAdapter;
 use ApacheSolrForTypo3\Solr\System\Solr\SolrConnection;
@@ -80,6 +81,7 @@ class Indexer extends AbstractIndexer
 
     protected SolrLogManager $logger;
     protected EventDispatcherInterface $eventDispatcher;
+    protected RecordRepository $recordRepository;
 
     public function __construct(
         array $options = [],
@@ -89,6 +91,7 @@ class Indexer extends AbstractIndexer
         ?FrontendEnvironment $frontendEnvironment = null,
         ?SolrLogManager $logger = null,
         ?EventDispatcherInterface $eventDispatcher = null,
+        ?RecordRepository $recordRepository = null
     ) {
         $this->options = $options;
         $this->pagesRepository = $pagesRepository ?? GeneralUtility::makeInstance(PagesRepository::class);
@@ -97,6 +100,7 @@ class Indexer extends AbstractIndexer
         $this->frontendEnvironment = $frontendEnvironment ?? GeneralUtility::makeInstance(FrontendEnvironment::class);
         $this->logger = $logger ?? GeneralUtility::makeInstance(SolrLogManager::class, __CLASS__);
         $this->eventDispatcher = $eventDispatcher ?? GeneralUtility::makeInstance(EventDispatcherInterface::class);
+        $this->recordRepository = $recordRepository ?? GeneralUtility::makeInstance(RecordRepository::class);
     }
 
     /**
@@ -254,16 +258,7 @@ class Indexer extends AbstractIndexer
             return null;
         }
 
-        $pidToUse = $this->getPageIdOfItem($item);
-
-        $globalTsfe = GeneralUtility::makeInstance(Tsfe::class);
-        $specializedTsfe = $globalTsfe->getTsfeByPageIdAndLanguageId($pidToUse, $language, $item->getRootPageUid());
-
-        if ($specializedTsfe === null) {
-            return null;
-        }
-
-        return $specializedTsfe->sys_page->getLanguageOverlay($item->getType(), $itemRecord);
+        return $this->recordRepository->getLanguageOverlay($item->getType(), $itemRecord, $language);
     }
 
     protected function isAFreeContentModeItemRecord(Item $item): bool

@@ -110,6 +110,7 @@ class IndexerTest extends IntegrationTestBase
         yield 'with_l_parameter' => ['can_index_custom_translated_record_with_l_param.csv'];
         yield 'without_l_parameter' => ['can_index_custom_translated_record_without_l_param.csv'];
         yield 'without_l_parameter_and_content_fallback' => ['can_index_custom_translated_record_without_l_param_and_content_fallback.csv'];
+        yield 'with_fe_groups_restriction' => ['can_index_custom_translated_record_with_fe_groups_restriction.csv'];
     }
 
     #[DataProvider('getTranslatedRecordDataProvider')]
